@@ -138,3 +138,64 @@ inner join issued_status st
 on b.isbn= st.issued_book_isbn
 group by 2,3
 ```
+## 4. Data Analysis & Findings
+**Task 7. Retrieve All Books in a Specific Category:**
+```sql
+SELECT * from BOOK
+WHERE category='Classic'
+```
+**Task 8: Find Total Rental Income by Category:**
+```sql
+select b.category,
+sum(rental_price) as Rental_income
+from book b
+inner join issued_status st
+on b.isbn=st.issued_book_isbn
+group by b.category
+```
+**Task 9: List Members Who Registered in the Last 180 Days:**
+```sql
+--Method-1
+select member_id,member_name
+from member
+where reg_date >=DATEADD(DAY, -180, GETDATE())
+
+-- Method-2
+SELECT member_id, member_name
+FROM member
+WHERE reg_date >= CURDATE() - INTERVAL 180 DAY;
+
+```
+**Task 10:List Employees with Their Branch Manager's Name and their branch details:**
+```sql
+SELECT 
+    e1.emp_id,
+    e1.emp_name,
+    e1.position,
+    e1.salary,
+    b.*,
+    e2.emp_name as manager
+FROM employee as e1
+JOIN 
+branch as b
+ON e1.branch_id = b.branch_id    
+JOIN
+employee as e2
+ON e2.emp_id = b.manager_id
+```
+**Task 11. Create a Table of Books with Rental Price Above a Certain Threshold:**
+```sql
+
+CREATE TABLE rentalPriceThresold 
+AS
+select * from book
+where rental_price>7.0
+```
+**Task 12: Retrieve the List of Books Not Yet Returned**
+```sql
+select  DISTINCT issued_book_name
+from issued_status st
+left join return_status rs
+on st.issued_id=rs.issued_id
+where return_id is NULL
+```
