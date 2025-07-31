@@ -199,3 +199,94 @@ left join return_status rs
 on st.issued_id=rs.issued_id
 where return_id is NULL
 ```
+## Advanced SQL Operations
+**Task 13: Identify Members with Overdue Books**
+Write a query to identify members who have overdue books (assume a 30-day return period). Display the member's_id, member's name, book title, issue date, and days overdue.
+```sql
+SELECT 
+    m.member_id,
+    m.member_name,
+    b.book_title,
+    si.issued_date,
+    DATEDIFF(CURDATE(), si.issued_date) - 30 AS days_overdue
+FROM issued_status si
+INNER JOIN member m ON si.issued_member_id = m.member_id
+INNER JOIN book b ON b.isbn = si.issued_book_isbn
+LEFT JOIN return_status rs ON si.issued_id = rs.issued_id
+WHERE 
+    (rs.return_date IS NULL AND DATEDIFF(CURDATE(), si.issued_date) > 30)
+    OR (rs.return_date IS NOT NULL AND DATEDIFF(rs.return_date, si.issued_date) > 30)
+order by 1
+```
+**Task 14: Branch Performance Report**
+Create a query that generates a performance report for each branch, showing the number of books issued, the number of books returned, and the total revenue generated from book rentals.
+```sql
+CREATE TABLE branch_reports
+AS
+SELECT 
+    b.branch_id,
+    b.manager_id,
+    COUNT(ist.issued_id) as number_book_issued,
+    COUNT(rs.return_id) as number_of_book_return,
+    SUM(bk.rental_price) as total_revenue
+FROM issued_status as ist
+JOIN 
+employee as e
+ON e.emp_id = ist.issued_emp_id
+JOIN
+branch as b
+ON e.branch_id = b.branch_id
+LEFT JOIN
+return_status as rs
+ON rs.issued_id = ist.issued_id
+JOIN 
+book as bk
+ON ist.issued_book_isbn = bk.isbn
+GROUP BY 1, 2;
+```
+**Task 15: CTAS: Create a Table of Active Members
+Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 2 months
+```SQL
+---Method-1
+CREATE TABLE activeMember
+as
+SELECT 
+    m.member_id,
+    m.member_name,
+    COUNT(st.issued_id) AS issued_count
+FROM member m
+INNER JOIN issued_status st
+    ON m.member_id = st.issued_member_id
+WHERE st.issued_date >= CURDATE() - INTERVAL 2 MONTH
+GROUP BY m.member_id, m.member_name
+HAVING COUNT(st.issued_id) >= 1;
+
+--Method-2
+SELECT * FROM member
+WHERE member_id IN (SELECT 
+                        DISTINCT issued_member_id   
+                    FROM issued_status
+                    WHERE 
+                        issued_date >= CURRENT_DATE -  INTERVAL 2 MONTH
+                    )
+;
+```
+**Task 17: Find Employees with the Most Book Issues Processed**
+Write a query to find the top 3 employees who have processed the most book issues. Display the employee name, number of books processed, and their branch.
+```sql
+select  e.emp_name,
+  b.branch_id,
+ count(st.issued_id) as numberofbooksprocessed
+ from employee e
+ inner join branch b
+ on e.branch_id=b.branch_id
+ inner join issued_status st
+ on e.emp_id=st.issued_emp_id
+ inner join book bo
+ on st.issued_book_isbn=bo.isbn
+ group by 1,2
+ order by count(st.issued_id) desc
+ limit 3
+```
+## Conclusion
+This project demonstrates the application of SQL skills in creating and managing a library management system. It includes database setup, data manipulation, and advanced querying, providing a solid foundation for data management and analysi
