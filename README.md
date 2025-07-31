@@ -9,7 +9,7 @@ This project demonstrates the implementation of a Library Management System usin
 **2.CRUD Operations**: Perform Create, Read, Update, and Delete operations on the data.
 **3.CTAS (Create Table As Select)**: Utilize CTAS to create new tables based on query results.
 
-**Database Creation***: Created a database named library_db.
+**Database Creation**: Created a database named library_db.
 ```sql
 CREATE DATABASE library_db
 use library_db
@@ -87,4 +87,54 @@ CREATE TABLE return_status
             return_book_isbn VARCHAR(50),
             FOREIGN KEY (return_book_isbn) REFERENCES book(isbn)
 );
+```
+## 2. CRUD Operations
+**1.Create**: Inserted sample records into the books table.
+**2.Read**: Retrieved and displayed data from various tables.
+**3.Update**: Updated records in the employees table.
+**4.Delete**: Removed records from the members table as needed.
+
+**Task 1. Create a New Book Record**-- "978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.'
+```sql
+select * from book
+insert into book (isbn,book_title,category,rental_price,status,author,publisher)
+VALUES('978-1-60129-456-2', 'To Kill a Mockingbird', 'Classic', 6.00, 'yes', 'Harper Lee', 'J.B. Lippincott & Co.')
+```
+**Task 2: Update an Existing Member's Address**
+```sql
+select * from member
+UPDATE member
+SET member_address = '125 Oak St'
+WHERE member_id = 'C103';
+```
+**Task 3: Delete a Record from the Issued Status Table** -- Objective: Delete the record with issued_id = 'IS121' from the issued_status table.
+```sql
+ delete from issued_status
+ where issued_id='IS121'
+```
+**Task 4: Retrieve All Books Issued by a Specific Employee** -- Objective: Select all books issued by the employee with emp_id = 'E101'.
+```sql
+ SELECT * FROM issued_status
+WHERE issued_emp_id = 'E101'
+```
+**Task 5: List Members Who Have Issued More Than One Book** -- Objective: Use GROUP BY to find members who have issued more than one book.
+```sql
+SELECT
+    issued_emp_id,
+    COUNT(issued_id)
+FROM issued_status
+GROUP BY 1
+HAVING COUNT(*) > 1
+```
+## 3. CTAS (Create Table As Select)
+**Task 6: Create Summary Tables: Used CTAS to generate new tables based on query results - each book and total book_issued_cnt**
+```sql
+CREATE TABLE book_issued_cnt  AS 
+select 
+count(issued_id) as Total_bookIssued,
+b.isbn,b.book_title
+from book b
+inner join issued_status st
+on b.isbn= st.issued_book_isbn
+group by 2,3
 ```
